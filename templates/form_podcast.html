@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if podcast else 'Nuevo' }} Podcast - NeoCast{% endblock %}
+
+{% block content %}
+    <a href="/admin" style="color: #888; text-decoration: none;">← Volver al Panel</a>
+    
+    <div class="card" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <h2 style="margin-top: 0; border-bottom: 1px solid var(--gray); padding-bottom: 15px;">
+            {{ '✏️ Editar Programa' if podcast else '🎙️ Crear Nuevo Programa' }}
+        </h2>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <label>Título del Programa</label>
+            <input type="text" name="title" value="{{ podcast.title if podcast else '' }}" required autofocus>
+            
+            {% if podcast %}
+                <label>URL Amigable (Slug) <small style="color: #888; font-weight: normal;">(Ej: mi-podcast-genial)</small></label>
+                <input type="text" name="slug" value="{{ podcast.slug }}" required>
+            {% endif %}
+            
+            <label>Autor / Host</label>
+            <input type="text" name="author" value="{{ podcast.author if podcast else '' }}" required>
+            
+            <label>Categoría</label>
+            <input type="text" name="category" value="{{ podcast.category if podcast else '' }}">
+            
+            <label>Imagen de Portada {% if podcast %} (Deja vacío para mantener la actual) {% endif %}</label>
+            <div style="background: #0a0a0a; padding: 20px; border-radius: 6px; border: 1px dashed #555; text-align: center;">
+                {% if podcast and podcast.cover_image %}
+                    <img src="/media/{{ podcast.cover_image }}" style="width: 80px; height: 80px; border-radius: 8px; margin-bottom: 10px;">
+                {% endif %}
+                <input type="file" name="cover_image" accept=".jpg,.jpeg,.png" style="border: none; background: transparent; padding: 0;">
+            </div>
+
+            <label>Descripción general del show</label>
+            <textarea name="description" required>{{ podcast.description if podcast else '' }}</textarea>
+            
+            <button type="submit">💾 Guardar Cambios</button>
+        </form>
+    </div>
+{% endblock %}

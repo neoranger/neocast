@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ episode.title }} - Embed</title>
+    <style>
+        body {
+            margin: 0; 
+            padding: 0; 
+            background: transparent; /* Fondo transparente para que se adapte a tu blog */
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .player-card {
+            display: flex; 
+            align-items: center; 
+            background: #1a1a1a; 
+            border-radius: 12px;
+            padding: 12px; 
+            color: white; 
+            border: 1px solid #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .cover {
+            width: 75px; 
+            height: 75px; 
+            border-radius: 8px; 
+            object-fit: cover; 
+            margin-right: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .info {
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            min-width: 0; /* Para que el texto largo no rompa la tarjeta */
+        }
+        .title {
+            margin: 0 0 4px 0; 
+            font-size: 1rem; 
+            color: #fff;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+        .podcast-name {
+            margin: 0 0 8px 0; 
+            font-size: 0.8rem; 
+            color: #aaa;
+        }
+        audio { 
+            width: 100%; 
+            height: 32px; 
+            outline: none; 
+        }
+        audio::-webkit-media-controls-enclosure {
+            border-radius: 4px;
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-card">
+        {% if podcast.cover_image %}
+        <img src="/media/{{ podcast.cover_image }}" class="cover" alt="Portada">
+        {% else %}
+        <div class="cover" style="background: #333; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎙️</div>
+        {% endif %}
+        
+        <div class="info">
+            <a href="/podcast/{{ podcast.slug }}/{{ episode.slug }}" target="_blank" style="text-decoration: none;">
+                <h4 class="title" title="{{ episode.title }}">{{ episode.title }}</h4>
+            </a>
+            <p class="podcast-name">{{ podcast.title }}</p>
+            <audio id="embed-player" controls preload="metadata" src="/media/{{ episode.audio_file }}"></audio>
+        </div>
+    </div>
+
+    <script>
+        // ¡Registramos las escuchas incluso si le dan play desde el blog!
+        const audioPlayer = document.getElementById('embed-player');
+        let playCounted = false;
+
+        audioPlayer.addEventListener('play', () => {
+            if (!playCounted) {
+                fetch('/api/play/{{ episode.id }}', { method: 'POST' });
+                playCounted = true;
+            }
+        });
+    </script>
+</body>
+</html>

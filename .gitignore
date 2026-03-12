@@ -1,0 +1,24 @@
+# Entornos virtuales y caché de Python
+venv/
+__pycache__/
+*.pyc
+
+# Variables de entorno
+.env
+
+# Bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos multimedia de los podcasts
+static/
+media/
+data/
+*.mp3
+*.wav
+*.m4a
+
+#Docker
+docker-compose.yml
+backups/

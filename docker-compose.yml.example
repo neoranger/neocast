@@ -1,0 +1,18 @@
+---
+services:
+  web:
+    build: .
+    container_name: neocast
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./static/media:/app/static/media
+      - ./app.py:/app/app.py
+    environment:
+      - ADMIN_PASSWORD=password
+      - PODCAST_EMAIL=mail@email.com
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - TZ=your/time/zone

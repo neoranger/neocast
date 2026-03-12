@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if episode else 'Subir' }} Episodio - NeoCast{% endblock %}
+
+{% block content %}
+    <a href="/admin" style="color: #888; text-decoration: none;">← Volver al Panel</a>
+
+    <div class="card" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <h2 style="margin-top: 0; border-bottom: 1px solid var(--gray); padding-bottom: 15px;">
+            {{ '✏️ Editar Episodio de:' if episode else '🚀 Subir Episodio a:' }} <span style="color: var(--accent);">{{ podcast.title }}</span>
+        </h2>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <label>Título del Episodio</label>
+            <input type="text" name="title" value="{{ episode.title if episode else '' }}" required autofocus>
+            
+            {% if episode %}
+                <label>URL Amigable (Slug) <small style="color: #888; font-weight: normal;">(Ej: episodio-1-entrevista)</small></label>
+                <input type="text" name="slug" value="{{ episode.slug }}" required>
+            {% endif %}
+            
+            <label>Notas del Episodio (Markdown soportado)</label>
+            <textarea name="description">{{ episode.description if episode else '' }}</textarea>
+            
+            <label>Archivo de Audio (.mp3) {% if episode %} (Deja vacío para mantener el audio actual) {% endif %}</label>
+            <div style="background: #0a0a0a; padding: 20px; border-radius: 6px; border: 1px dashed #555; text-align: center;">
+                <input type="file" name="audio_file" accept=".mp3" style="border: none; background: transparent; padding: 0;" {% if not episode %}required{% endif %}>
+                <p style="color: #888; font-size: 0.8rem; margin: 10px 0 0 0;">FFmpeg procesará la duración y el peso automáticamente.</p>
+            </div>
+            
+            <button type="submit">💾 Guardar Episodio</button>
+        </form>
+    </div>
+{% endblock %}

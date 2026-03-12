@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Acceso Restringido - NeoCast{% endblock %}
+
+{% block content %}
+    <div class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+        <h2 style="margin-top: 0; color: var(--accent);">🔒 Acceso Admin</h2>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div style="background: #ff4444; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+              {{ messages[0] }}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if first_time %}
+            <p style="color: #ccc; font-size: 0.9rem;">Primera vez: Escanea este QR con Google Authenticator o Authy.</p>
+            <div style="background: white; padding: 10px; display: inline-block; border-radius: 8px; margin-bottom: 20px;">
+                <img src="data:image/png;base64,{{ qr_code }}" width="200">
+            </div>
+        {% else %}
+            <p style="color: #aaa;">Ingresa tu contraseña y el código temporal de tu app 2FA.</p>
+        {% endif %}
+
+        <form method="POST">
+            <label style="text-align: left;">Contraseña Maestra</label>
+            <input type="password" name="password" required autofocus style="margin-bottom: 15px;">
+            
+            <label style="text-align: left;">Código 2FA (6 dígitos)</label>
+            <input type="text" name="code" placeholder="000000" maxlength="6" autocomplete="off" required style="letter-spacing: 5px; text-align: center; font-size: 1.2rem;">
+            
+            <button type="submit" style="margin-top: 25px;">Ingresar</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ episode.title }} - {{ podcast.title }}{% endblock %}
+
+{% block meta_description %}{{ episode.description[:150] | striptags }}{% endblock %}
+{% block og_title %}{{ episode.title }} | {{ podcast.title }}{% endblock %}
+{% block og_description %}{{ episode.description[:150] | striptags }}{% endblock %}
+{% block og_image %}{% if podcast.cover_image %}{{ request.url_root }}media/{{ podcast.cover_image }}{% endif %}{% endblock %}
+
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <a href="/podcast/{{ podcast.slug }}" style="color: #888; text-decoration: none;">← Volver a {{ podcast.title }}</a>
+
+    <div class="card" style="margin-top: 20px; padding: 40px 30px; text-align: center;">
+        
+        {% if podcast.cover_image %}
+        <img src="/media/{{ podcast.cover_image }}" alt="Portada" style="width: 150px; height: 150px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+        {% endif %}
+
+        <h1 style="margin-top: 0; margin-bottom: 10px;">{{ episode.title }}</h1>
+        <p style="color: #aaa; margin-bottom: 30px;">{{ episode.pub_date.strftime('%Y-%m-%d') }} | ⏱️ {{ episode.duration }} | 🎧 <span id="listen-count">{{ episode.listens }}</span></p>
+
+        <audio id="podcast-player" controls preload="metadata" src="/media/{{ episode.audio_file }}?v={{ episode.id }}" style="width: 100%; max-width: 600px; margin: 0 auto; outline: none;">
+            Tu navegador no soporta el audio.
+        </audio>
+        
+        <div style="margin-top: 30px; text-align: left; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <label style="display: block; color: #888; margin-bottom: 8px; font-size: 0.85rem;">🔗 Código para incrustar en tu blog web (Iframe):</label>
+            <input type="text" readonly value='<iframe src="{{ request.url_root }}embed/episode/{{ episode.id }}" width="100%" height="120" frameborder="0" scrolling="no" style="border-radius: 12px; background: transparent;"></iframe>' style="width: 100%; background: #000; color: #44aaff; border: 1px solid #222; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 0.85rem; cursor: copy;" onclick="this.select(); document.execCommand('copy'); alert('¡Código copiado al portapapeles!');">
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Notas del Episodio</h3>
+        <div id="raw-markdown" style="display: none;">{{ episode.description }}</div>
+        <div id="rendered-notes" style="color: #ccc; line-height: 1.8;"></div>
+    </div>
+
+    <script>
+        // 1. RENDERIZAR MARKDOWN
+        const rawText = document.getElementById('raw-markdown').innerText;
+        document.getElementById('rendered-notes').innerHTML = marked.parse(rawText);
+
+        // 2. CONTADOR DE ESCUCHAS (Solo cuenta una vez por recarga de página)
+        const audioPlayer = document.getElementById('podcast-player');
+        let playCounted = false;
+
+        audioPlayer.addEventListener('play', () => {
+            if (!playCounted) {
+                // Hacemos una petición invisible a la API para sumar +1
+                fetch('/api/play/{{ episode.id }}', { method: 'POST' });
+                playCounted = true;
+                
+                // Actualizamos el numerito en pantalla solo por estética
+                const countSpan = document.getElementById('listen-count');
+                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+            }
+        });
+    </script>
+{% endblock %}

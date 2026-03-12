@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Importar Podcast - NeoCast{% endblock %}
+
+{% block content %}
+    <a href="/admin" style="color: #888; text-decoration: none;">← Volver al Panel</a>
+    
+    <div class="card" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <h2 style="margin-top: 0; border-bottom: 1px solid var(--gray); padding-bottom: 15px;">
+            📡 Importar Podcast desde RSS
+        </h2>
+        
+        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">
+            Pega la URL del feed RSS (ej: Castopod, Anchor, Spotify for Podcasters). <br><br>
+            ⚠️ <strong>Nota:</strong> La descarga de audios se realizará en <em>segundo plano</em>. Al hacer clic en Iniciar, volverás al panel inmediatamente. Simplemente recarga la página cada tanto para ver cómo van apareciendo tus episodios.
+        </p>
+
+        <form method="POST">
+            <label>URL del Feed RSS</label>
+            <input type="url" name="rss_url" placeholder="https://tudominio.com/feed.xml" required autofocus>
+            
+            <button type="submit" style="background: #44aaff; color: white; margin-top: 15px;">🚀 Iniciar Importación en Segundo Plano</button>
+        </form>
+    </div>
+{% endblock %}

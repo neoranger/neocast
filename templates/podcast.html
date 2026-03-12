@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ podcast.title }} - NeoCast{% endblock %}
+
+{% block meta_description %}{{ podcast.description[:150] }}{% endblock %}
+{% block og_title %}{{ podcast.title }}{% endblock %}
+{% block og_description %}{{ podcast.description[:150] }}{% endblock %}
+{% block og_image %}{% if podcast.cover_image %}{{ request.url_root }}media/{{ podcast.cover_image }}{% endif %}{% endblock %}
+
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <a href="/" style="color: #888; text-decoration: none;">← Volver al inicio</a>
+    
+    <div class="card" style="margin-top: 20px; border-color: var(--accent); display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+        {% if podcast.cover_image %}
+        <img src="/media/{{ podcast.cover_image }}" style="width: 150px; height: 150px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); object-fit: cover;">
+        {% endif %}
+        
+        <div style="flex: 1;">
+            <h1 style="margin: 0; color: var(--accent);">{{ podcast.title }}</h1>
+            <p style="color: #aaa; margin-top: 5px;">Por {{ podcast.author }} | Categoría: {{ podcast.category }}</p>
+            <p>{{ podcast.description }}</p>
+            
+            <a href="/podcast/{{ podcast.slug }}/feed.xml" target="_blank" class="btn" style="display: inline-block; margin-top: 10px;">
+                📡 RSS Feed
+            </a>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 40px; border-bottom: 1px solid var(--gray); padding-bottom: 10px;">Episodios ({{ podcast.episodes|length }})</h3>
+
+    {% for ep in podcast.episodes %}
+    <div class="card">
+        <h2 style="margin-top: 0;">
+            <a href="/podcast/{{ podcast.slug }}/{{ ep.slug }}" style="color: var(--text); text-decoration: none;">
+                {{ ep.title }}
+            </a>
+        </h2>
+        <small style="color: #888;">Publicado el: {{ ep.pub_date.strftime('%Y-%m-%d') }} | Duración: {{ ep.duration }} | 🎧 {{ ep.listens }}</small>
+        
+        <div class="raw-desc" style="display: none;">{{ ep.description }}</div>
+        <p class="rendered-excerpt" style="color: #ccc; line-height: 1.6;"></p>
+        
+        <audio controls preload="metadata" src="/media/{{ ep.audio_file }}?v={{ ep.id }}" style="width: 100%; margin-top: 15px; border-radius: 8px;"></audio>
+    </div>
+    {% endfor %}
+
+    <script>
+        const rawDescs = document.querySelectorAll('.raw-desc');
+        const excerpts = document.querySelectorAll('.rendered-excerpt');
+
+        rawDescs.forEach((el, index) => {
+            // 1. Convertimos el Markdown a HTML
+            let html = marked.parse(el.innerText);
+            
+            // 2. Usamos un elemento temporal para extraer SOLO EL TEXTO PLANO (limpiamos el HTML)
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            let plainText = tempDiv.textContent || tempDiv.innerText || '';
+            
+            // 3. Cortamos el texto a 150 caracteres para que sea un resumen prolijo
+            if (plainText.length > 150) {
+                plainText = plainText.substring(0, 150) + '...';
+            }
+            
+            // 4. Lo inyectamos en la tarjeta
+            excerpts[index].innerText = plainText;
+        });
+    </script>
+{% endblock %}
