@@ -9,52 +9,354 @@
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <a href="/podcast/{{ podcast.slug }}" style="color: #888; text-decoration: none;">← Volver a {{ podcast.title }}</a>
+    <a href="/podcast/{{ podcast.slug }}" class="back-link" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 500; margin-bottom: 25px;">
+        <i class="fa-solid fa-chevron-left"></i> Volver a {{ podcast.title }}
+    </a>
 
-    <div class="card" style="margin-top: 20px; padding: 40px 30px; text-align: center;">
+    <div class="custom-player-container" style="max-width: 650px; margin: 0 auto 30px auto; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden;">
         
+        <!-- Sutil resplandor de fondo -->
+        <div style="position: absolute; top: -100px; width: 300px; height: 300px; background: rgba(16, 185, 129, 0.15); filter: blur(80px); border-radius: 50%; pointer-events: none; z-index: 0;"></div>
+
+        <!-- Cover Art -->
         {% if podcast.cover_image %}
-        <img src="/media/{{ podcast.cover_image }}" alt="Portada" style="width: 150px; height: 150px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+        <img src="/media/{{ podcast.cover_image }}" alt="Portada" style="width: 180px; height: 180px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); object-fit: cover; border: 1px solid rgba(255,255,255,0.05); z-index: 1;">
+        {% else %}
+        <div style="width: 180px; height: 180px; border-radius: 16px; background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 12px 30px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); z-index: 1;">
+            <i class="fa-solid fa-microphone" style="font-size: 4rem; margin-bottom: 10px;"></i>
+        </div>
         {% endif %}
 
-        <h1 style="margin-top: 0; margin-bottom: 10px;">{{ episode.title }}</h1>
-        <p style="color: #aaa; margin-bottom: 30px;">{{ episode.pub_date.strftime('%Y-%m-%d') }} | ⏱️ {{ episode.duration }} | 🎧 <span id="listen-count">{{ episode.listens }}</span></p>
+        <!-- Episode Metadata -->
+        <h1 style="margin: 0 0 6px 0; font-size: 1.8rem; font-family: var(--font-head); line-height: 1.2; z-index: 1;">{{ episode.title }}</h1>
+        <p style="color: var(--text-secondary); margin: 0 0 25px 0; font-weight: 500; font-size: 0.95rem; z-index: 1;">
+            <span style="color: var(--text-muted);">En</span> {{ podcast.title }}
+        </p>
 
-        <audio id="podcast-player" controls preload="metadata" src="/media/{{ episode.audio_file }}?v={{ episode.id }}" style="width: 100%; max-width: 600px; margin: 0 auto; outline: none;">
-            Tu navegador no soporta el audio.
-        </audio>
+        <!-- Elemento nativo oculto -->
+        <audio id="podcast-player" preload="metadata" src="/media/{{ episode.audio_file }}?v={{ episode.id }}" style="display: none;"></audio>
+
+        <!-- Barra de Progreso Seekbar -->
+        <div style="width: 100%; display: flex; flex-direction: column; margin-bottom: 25px; z-index: 1;">
+            <div style="position: relative; width: 100%; display: flex; align-items: center; height: 8px; margin-bottom: 8px;">
+                <input type="range" id="player-seekbar" min="0" max="100" value="0" step="0.1" style="width: 100%; cursor: pointer; height: 6px; border-radius: 3px; -webkit-appearance: none; background: rgba(255,255,255,0.1); outline: none;">
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                <span id="player-time-current">00:00</span>
+                <span id="player-time-duration">{{ episode.duration }}</span>
+            </div>
+        </div>
+
+        <!-- Fila de Controles -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; width: 100%; margin-bottom: 20px; flex-wrap: wrap; z-index: 1;">
+            
+            <!-- Velocidad -->
+            <div style="position: relative;" class="speed-control">
+                <button id="player-speed-btn" class="btn btn-secondary" style="border-radius: 20px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; width: 55px; justify-content: center; box-shadow: none;">1.0x</button>
+                <div id="player-speed-menu" style="display: none; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 10; width: 65px; overflow: hidden;">
+                    <div class="speed-opt" data-speed="0.75" style="padding: 8px 10px; cursor: pointer; font-size: 0.8rem;">0.75x</div>
+                    <div class="speed-opt" data-speed="1.0" style="padding: 8px 10px; cursor: pointer; font-size: 0.8rem;">1.0x</div>
+                    <div class="speed-opt" data-speed="1.25" style="padding: 8px 10px; cursor: pointer; font-size: 0.8rem;">1.25x</div>
+                    <div class="speed-opt" data-speed="1.5" style="padding: 8px 10px; cursor: pointer; font-size: 0.8rem;">1.5x</div>
+                    <div class="speed-opt" data-speed="2.0" style="padding: 8px 10px; cursor: pointer; font-size: 0.8rem;">2.0x</div>
+                </div>
+            </div>
+
+            <!-- Saltar Atras -->
+            <button id="player-skip-back" class="btn btn-secondary" style="border-radius: 50%; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: none;" title="Retroceder 10s">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+
+            <!-- Play/Pause -->
+            <button id="player-play-pause" class="btn" style="border-radius: 50%; width: 64px; height: 64px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: var(--accent-gradient); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);" title="Reproducir">
+                <i class="fa-solid fa-play" style="margin-left: 3px;" id="play-pause-icon"></i>
+            </button>
+
+            <!-- Saltar Adelante -->
+            <button id="player-skip-forward" class="btn btn-secondary" style="border-radius: 50%; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: none;" title="Adelantar 30s">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+
+            <!-- Volumen -->
+            <div style="display: flex; align-items: center; gap: 8px;" class="volume-container">
+                <button id="player-volume-btn" class="btn btn-secondary" style="border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: none; font-size: 0.95rem;">
+                    <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+                </button>
+                <input type="range" id="player-volume-slider" min="0" max="1" step="0.05" value="1" style="width: 70px; cursor: pointer; height: 4px; border-radius: 2px; -webkit-appearance: none; background: rgba(255,255,255,0.15); outline: none;">
+            </div>
+        </div>
         
-        <div style="margin-top: 30px; text-align: left; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; max-width: 600px; margin-left: auto; margin-right: auto;">
-            <label style="display: block; color: #888; margin-bottom: 8px; font-size: 0.85rem;">🔗 Código para incrustar en tu blog web (Iframe):</label>
-            <input type="text" readonly value='<iframe src="{{ request.url_root }}embed/episode/{{ episode.id }}" width="100%" height="120" frameborder="0" scrolling="no" style="border-radius: 12px; background: transparent;"></iframe>' style="width: 100%; background: #000; color: #44aaff; border: 1px solid #222; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 0.85rem; cursor: copy;" onclick="this.select(); document.execCommand('copy'); alert('¡Código copiado al portapapeles!');">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.02); padding: 6px 16px; border-radius: 12px; border: 1px solid var(--border-color); z-index: 1;">
+            <span><i class="fa-regular fa-calendar" style="color: var(--accent-primary); margin-right: 4px;"></i> {{ episode.pub_date.strftime('%d %b, %Y') }}</span>
+            <span>&bull;</span>
+            <span><i class="fa-solid fa-headphones" style="color: var(--accent-primary); margin-right: 4px;"></i> <span id="listen-count">{{ episode.listens }}</span> reproducciones</span>
         </div>
     </div>
 
-    <div class="card">
-        <h3>Notas del Episodio</h3>
-        <div id="raw-markdown" style="display: none;">{{ episode.description }}</div>
-        <div id="rendered-notes" style="color: #ccc; line-height: 1.8;"></div>
+    <!-- Panel de Compartido / Embed -->
+    <div style="margin-top: 30px; text-align: left; background: rgba(10, 15, 30, 0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); max-width: 650px; margin-left: auto; margin-right: auto; box-sizing: border-box;">
+        <label style="display: block; color: var(--text-secondary); margin-top: 0; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-code" style="color: var(--accent-primary); margin-right: 5px;"></i> Código para incrustar en tu sitio web (IFrame):</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="embed-code-input" readonly value='<iframe src="{{ request.url_root }}embed/episode/{{ episode.id }}" width="100%" height="120" frameborder="0" scrolling="no" style="border-radius: 12px; background: transparent;"></iframe>' style="flex: 1; background: #06090e; color: #818cf8; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; cursor: copy;" onclick="this.select();">
+            <button onclick="copyEmbedCode()" class="btn btn-secondary" style="border-radius: 8px; padding: 12px 18px; box-shadow: none; font-size: 0.85rem;" id="copy-btn">
+                <i class="fa-regular fa-copy" id="copy-icon"></i> Copiar
+            </button>
+        </div>
     </div>
 
+    <!-- Notas del Episodio (Markdown) -->
+    <div class="card" style="margin-top: 30px; border-color: rgba(16, 185, 129, 0.15); max-width: 650px; margin-left: auto; margin-right: auto;">
+        <h3 style="margin-bottom: 20px; font-family: var(--font-head); font-size: 1.4rem; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-note-sticky" style="color: var(--accent-primary);"></i> Notas del Episodio</h3>
+        <div id="raw-markdown" style="display: none;">{{ episode.description }}</div>
+        <div id="rendered-notes" style="color: var(--text-secondary); line-height: 1.8; font-size: 1rem;" class="markdown-body"></div>
+    </div>
+
+    <!-- Lógica del Reproductor y Utilidades -->
     <script>
         // 1. RENDERIZAR MARKDOWN
         const rawText = document.getElementById('raw-markdown').innerText;
         document.getElementById('rendered-notes').innerHTML = marked.parse(rawText);
 
-        // 2. CONTADOR DE ESCUCHAS (Solo cuenta una vez por recarga de página)
-        const audioPlayer = document.getElementById('podcast-player');
-        let playCounted = false;
+        // 2. REPRODUCTOR DE AUDIO PERSONALIZADO
+        const audio = document.getElementById('podcast-player');
+        const playPauseBtn = document.getElementById('player-play-pause');
+        const playPauseIcon = document.getElementById('play-pause-icon');
+        const seekbar = document.getElementById('player-seekbar');
+        const timeCurrent = document.getElementById('player-time-current');
+        const timeDuration = document.getElementById('player-time-duration');
+        const skipBack = document.getElementById('player-skip-back');
+        const skipForward = document.getElementById('player-skip-forward');
+        const speedBtn = document.getElementById('player-speed-btn');
+        const speedMenu = document.getElementById('player-speed-menu');
+        const speedOpts = document.querySelectorAll('.speed-opt');
+        const volumeBtn = document.getElementById('player-volume-btn');
+        const volumeIcon = document.getElementById('volume-icon');
+        const volumeSlider = document.getElementById('player-volume-slider');
 
-        audioPlayer.addEventListener('play', () => {
-            if (!playCounted) {
-                // Hacemos una petición invisible a la API para sumar +1
-                fetch('/api/play/{{ episode.id }}', { method: 'POST' });
-                playCounted = true;
-                
-                // Actualizamos el numerito en pantalla solo por estética
-                const countSpan = document.getElementById('listen-count');
-                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+        // Formatear segundos a MM:SS o HH:MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            
+            const mStr = m.toString().padStart(2, '0');
+            const sStr = s.toString().padStart(2, '0');
+            
+            if (h > 0) {
+                const hStr = h.toString().padStart(2, '0');
+                return `${hStr}:${mStr}:${sStr}`;
+            }
+            return `${mStr}:${sStr}`;
+        }
+
+        // Play / Pause toggle
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
             }
         });
+
+        // Eventos de Audio
+        let playCounted = false;
+        audio.addEventListener('play', () => {
+            playPauseIcon.className = "fa-solid fa-pause";
+            playPauseIcon.style.marginLeft = "0px";
+            
+            if (!playCounted) {
+                fetch('/api/play/{{ episode.id }}', { method: 'POST' });
+                playCounted = true;
+                const countSpan = document.getElementById('listen-count');
+                if (countSpan) {
+                    countSpan.innerText = parseInt(countSpan.innerText) + 1;
+                }
+            }
+        });
+
+        audio.addEventListener('pause', () => {
+            playPauseIcon.className = "fa-solid fa-play";
+            playPauseIcon.style.marginLeft = "3px";
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.duration) return;
+            const progress = (audio.currentTime / audio.duration) * 100;
+            seekbar.value = progress;
+            timeCurrent.innerText = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            timeDuration.innerText = formatTime(audio.duration);
+        });
+
+        // Buscar en la barra de reproducción
+        seekbar.addEventListener('input', () => {
+            if (!audio.duration) return;
+            const time = (seekbar.value / 100) * audio.duration;
+            audio.currentTime = time;
+        });
+
+        // Saltar adelante / atrás
+        skipBack.addEventListener('click', () => {
+            audio.currentTime = Math.max(0, audio.currentTime - 10);
+        });
+
+        skipForward.addEventListener('click', () => {
+            audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30);
+        });
+
+        // Velocidad de reproducción
+        speedBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            speedMenu.style.display = speedMenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', () => {
+            speedMenu.style.display = 'none';
+        });
+
+        speedOpts.forEach(opt => {
+            opt.addEventListener('click', () => {
+                const speed = parseFloat(opt.dataset.speed);
+                audio.playbackRate = speed;
+                speedBtn.innerText = speed + "x";
+            });
+        });
+
+        // Control de volumen
+        let lastVolume = 1;
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+            updateVolumeIcon(audio.volume);
+        });
+
+        volumeBtn.addEventListener('click', () => {
+            if (audio.muted || audio.volume === 0) {
+                audio.muted = false;
+                audio.volume = lastVolume > 0 ? lastVolume : 1;
+                volumeSlider.value = audio.volume;
+            } else {
+                lastVolume = audio.volume;
+                audio.volume = 0;
+                volumeSlider.value = 0;
+            }
+            updateVolumeIcon(audio.volume);
+        });
+
+        function updateVolumeIcon(vol) {
+            if (vol === 0) {
+                volumeIcon.className = "fa-solid fa-volume-xmark";
+            } else if (vol < 0.5) {
+                volumeIcon.className = "fa-solid fa-volume-low";
+            } else {
+                volumeIcon.className = "fa-solid fa-volume-high";
+            }
+        }
+
+        // 3. COPIAR CÓDIGO DE INCUSTRAMIENTO
+        function copyEmbedCode() {
+            const input = document.getElementById('embed-code-input');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                const copyBtn = document.getElementById('copy-btn');
+                copyBtn.style.borderColor = "var(--success)";
+                copyBtn.style.color = "var(--success)";
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado';
+                setTimeout(() => {
+                    copyBtn.style.borderColor = "var(--border-color)";
+                    copyBtn.style.color = "var(--text-primary)";
+                    copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> Copiar';
+                }, 2000);
+            });
+        }
     </script>
+
+    <!-- Estilos locales para slider personalizado y Markdown -->
+    <style>
+        .back-link:hover {
+            color: var(--accent-primary);
+            transform: translateX(-4px);
+        }
+        .back-link {
+            transition: var(--transition);
+        }
+        
+        /* Personalización de sliders */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            border: none;
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.3);
+        }
+
+        .speed-opt {
+            transition: background 0.2s;
+            color: var(--text-secondary);
+        }
+        .speed-opt:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        /* Estilo para el render de Markdown */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-family: var(--font-head);
+            color: var(--text-primary);
+        }
+        .markdown-body p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 20px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+        .markdown-body li {
+            margin-bottom: 6px;
+        }
+        .markdown-body blockquote {
+            border-left: 4px solid var(--accent-primary);
+            padding: 10px 20px;
+            margin: 0 0 16px 0;
+            background: rgba(16, 185, 129, 0.05);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+        .markdown-body code {
+            font-family: monospace;
+            background: rgba(255,255,255,0.06);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--accent-primary);
+        }
+    </style>
 {% endblock %}

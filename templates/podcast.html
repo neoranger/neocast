@@ -9,62 +9,138 @@
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <a href="/" style="color: #888; text-decoration: none;">← Volver al inicio</a>
+    <a href="/" class="back-link" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 500; margin-bottom: 25px;">
+        <i class="fa-solid fa-chevron-left"></i> Volver al inicio
+    </a>
     
-    <div class="card" style="margin-top: 20px; border-color: var(--accent); display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+    <div class="card podcast-header-card" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap; padding: 35px; position: relative; overflow: hidden; border-color: rgba(16, 185, 129, 0.15);">
+        <!-- Fondo difuso sutil con la portada -->
         {% if podcast.cover_image %}
-        <img src="/media/{{ podcast.cover_image }}" style="width: 150px; height: 150px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); object-fit: cover;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('/media/{{ podcast.cover_image }}') no-repeat center center; background-size: cover; filter: blur(50px) opacity(0.08); z-index: 0; pointer-events: none;"></div>
+        {% endif %}
+
+        {% if podcast.cover_image %}
+        <img src="/media/{{ podcast.cover_image }}" alt="{{ podcast.title }}" style="width: 160px; height: 160px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); object-fit: cover; z-index: 1; border: 1px solid rgba(255,255,255,0.05);">
+        {% else %}
+        <div style="width: 160px; height: 160px; border-radius: 16px; background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.6); z-index: 1; border: 1px solid rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-microphone" style="font-size: 4rem; margin-bottom: 10px;"></i>
+        </div>
         {% endif %}
         
-        <div style="flex: 1;">
-            <h1 style="margin: 0; color: var(--accent);">{{ podcast.title }}</h1>
-            <p style="color: #aaa; margin-top: 5px;">Por {{ podcast.author }} | Categoría: {{ podcast.category }}</p>
-            <p>{{ podcast.description }}</p>
+        <div style="flex: 1; min-width: 250px; z-index: 1;">
+            <span style="font-size: 0.8rem; background: rgba(16, 185, 129, 0.1); color: #a7f3d0; padding: 5px 12px; border-radius: 20px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.2); display: inline-block; margin-bottom: 10px;">
+                {{ podcast.category or 'General' }}
+            </span>
+            <h1 style="margin: 0 0 8px 0; font-size: 2.2rem; font-family: var(--font-head); line-height: 1.2;">{{ podcast.title }}</h1>
+            <p style="color: var(--text-secondary); margin-top: 0; margin-bottom: 15px; font-weight: 500; font-size: 0.95rem;">
+                <span style="color: var(--text-muted);">Por</span> {{ podcast.author }}
+            </p>
+            <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 25px;">{{ podcast.description }}</p>
             
-            <a href="/podcast/{{ podcast.slug }}/feed.xml" target="_blank" class="btn" style="display: inline-block; margin-top: 10px;">
-                📡 RSS Feed
-            </a>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="/podcast/{{ podcast.slug }}/feed.xml" target="_blank" class="btn" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);">
+                    <i class="fa-solid fa-rss"></i> Feed RSS
+                </a>
+                {% if session.get('logged_in') %}
+                    <a href="/admin/podcast/{{ podcast.id }}/episode/new" class="btn btn-secondary">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Subir Episodio
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <h3 style="margin-top: 40px; border-bottom: 1px solid var(--gray); padding-bottom: 10px;">Episodios ({{ podcast.episodes|length }})</h3>
-
-    {% for ep in podcast.episodes %}
-    <div class="card">
-        <h2 style="margin-top: 0;">
-            <a href="/podcast/{{ podcast.slug }}/{{ ep.slug }}" style="color: var(--text); text-decoration: none;">
-                {{ ep.title }}
-            </a>
-        </h2>
-        <small style="color: #888;">Publicado el: {{ ep.pub_date.strftime('%Y-%m-%d') }} | Duración: {{ ep.duration }} | 🎧 {{ ep.listens }}</small>
-        
-        <div class="raw-desc" style="display: none;">{{ ep.description }}</div>
-        <p class="rendered-excerpt" style="color: #ccc; line-height: 1.6;"></p>
-        
-        <audio controls preload="metadata" src="/media/{{ ep.audio_file }}?v={{ ep.id }}" style="width: 100%; margin-top: 15px; border-radius: 8px;"></audio>
+    <div style="margin-top: 50px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 1.5rem; font-family: var(--font-head);"><i class="fa-solid fa-podcast" style="color: var(--accent-primary); margin-right: 8px;"></i> Episodios ({{ podcast.episodes|length }})</h2>
     </div>
-    {% endfor %}
+
+    <div class="episodes-list">
+        {% for ep in podcast.episodes %}
+        <div class="card episode-card" style="padding: 24px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;">
+                <h3 style="margin: 0; font-size: 1.35rem; font-family: var(--font-head); line-height: 1.3;">
+                    <a href="/podcast/{{ podcast.slug }}/{{ ep.slug }}" class="episode-title" style="color: var(--text-primary); text-decoration: none;">
+                        {{ ep.title }}
+                    </a>
+                </h3>
+                <span style="font-size: 0.8rem; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 8px; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-headphones" style="color: var(--accent-primary);"></i> {{ ep.listens }}
+                </span>
+            </div>
+            
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.82rem; color: var(--text-muted); font-weight: 500; margin-bottom: 15px;">
+                <span><i class="fa-regular fa-calendar-days" style="margin-right: 4px;"></i> {{ ep.pub_date.strftime('%d %b, %Y') }}</span>
+                <span><i class="fa-regular fa-clock" style="margin-right: 4px;"></i> {{ ep.duration }}</span>
+            </div>
+            
+            <div class="raw-desc" style="display: none;">{{ ep.description }}</div>
+            <p class="rendered-excerpt" style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.5; margin: 0 0 20px 0;"></p>
+            
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <a href="/podcast/{{ podcast.slug }}/{{ ep.slug }}" class="btn btn-secondary" style="border-radius: 20px; padding: 8px 18px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-circle-info"></i> Notas
+                </a>
+                <audio controls preload="metadata" src="/media/{{ ep.audio_file }}?v={{ ep.id }}" style="flex: 1; height: 36px; border-radius: 20px; outline: none;"></audio>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; padding: 50px 20px; background: rgba(255,255,255,0.01);">
+            <i class="fa-solid fa-box-open" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px;"></i>
+            <h3 style="margin-top: 0; color: var(--text-secondary);">No hay episodios en este programa todavía</h3>
+            {% if session.get('logged_in') %}
+                <p>Haz clic en "Subir Episodio" arriba para añadir contenido.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
 
     <script>
         const rawDescs = document.querySelectorAll('.raw-desc');
         const excerpts = document.querySelectorAll('.rendered-excerpt');
 
         rawDescs.forEach((el, index) => {
-            // 1. Convertimos el Markdown a HTML
             let html = marked.parse(el.innerText);
-            
-            // 2. Usamos un elemento temporal para extraer SOLO EL TEXTO PLANO (limpiamos el HTML)
             let tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             let plainText = tempDiv.textContent || tempDiv.innerText || '';
-            
-            // 3. Cortamos el texto a 150 caracteres para que sea un resumen prolijo
-            if (plainText.length > 150) {
-                plainText = plainText.substring(0, 150) + '...';
+            if (plainText.length > 180) {
+                plainText = plainText.substring(0, 180) + '...';
             }
-            
-            // 4. Lo inyectamos en la tarjeta
             excerpts[index].innerText = plainText;
         });
     </script>
+
+    <style>
+        .back-link:hover {
+            color: var(--accent-primary);
+            transform: translateX(-4px);
+        }
+        .back-link {
+            transition: var(--transition);
+        }
+        .episode-card {
+            border: 1px solid var(--border-color);
+            transition: var(--transition) !important;
+        }
+        .episode-card:hover {
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .episode-title:hover {
+            color: var(--accent-primary) !important;
+        }
+        /* Estilizar reproductores nativos */
+        audio::-webkit-media-controls-panel {
+            background-color: rgba(15, 23, 42, 0.95);
+        }
+        audio::-webkit-media-controls-play-button,
+        audio::-webkit-media-controls-volume-control-container,
+        audio::-webkit-media-controls-timeline-element {
+            filter: invert(1);
+        }
+        audio::-webkit-media-controls-current-time-display,
+        audio::-webkit-media-controls-time-remaining-display {
+            color: #fff;
+            font-family: var(--font-body);
+        }
+    </style>
 {% endblock %}

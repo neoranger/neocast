@@ -2,83 +2,143 @@
 {% block title %}Panel de Control - NeoCast{% endblock %}
 
 {% block content %}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h1 style="margin: 0;">⚙️ Panel de Control</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="/" class="btn" style="background: #333; color: white;">🌐 Ver Web Pública</a>
-            <a href="/admin/podcast/new" class="btn">➕ Crear Programa</a>
-            <a href="/admin/import" class="btn" style="background: transparent; color: #44aaff; border: 1px solid #44aaff;">📡 Importar Podcast desde RSS</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+        <h1 style="margin: 0; font-size: 2.2rem; font-family: var(--font-head);"><i class="fa-solid fa-sliders" style="color: var(--accent-primary); margin-right: 8px;"></i> Panel de Control</h1>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/" class="btn btn-secondary"><i class="fa-solid fa-globe"></i> Ver Web Pública</a>
+            <a href="/admin/podcast/new" class="btn"><i class="fa-solid fa-plus"></i> Crear Programa</a>
+            <a href="/admin/import" class="btn btn-secondary" style="border-color: rgba(249, 115, 22, 0.3); color: #f97316;"><i class="fa-solid fa-rss"></i> Importar RSS</a>
         </div>
     </div>
 
     {% for pod in podcasts %}
-            <div class="card" style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray); padding-bottom: 15px; margin-bottom: 10px;">
+            <div class="card podcast-admin-card" style="margin-bottom: 24px; padding: 25px; border-color: rgba(99, 102, 241, 0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 18px; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;">
                     <div style="display: flex; align-items: center; gap: 15px;">
                         {% if pod.cover_image %}
-                            <img src="/media/{{ pod.cover_image }}" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;">
+                            <img src="/media/{{ pod.cover_image }}" style="width: 55px; height: 55px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.05);">
                         {% else %}
-                            <div style="width: 50px; height: 50px; background: #333; border-radius: 6px; display: flex; align-items: center; justify-content: center;">🎙️</div>
+                            <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-microphone"></i></div>
                         {% endif %}
-                        <h3 style="margin: 0; font-size: 1.4rem;">{{ pod.title }}</h3>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.4rem; font-family: var(--font-head);">{{ pod.title }}</h3>
+                            <span style="font-size: 0.75rem; background: rgba(255, 255, 255, 0.04); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; font-weight: 600; border: 1px solid var(--border-color); margin-top: 4px; display: inline-block;">{{ pod.category or 'General' }}</span>
+                        </div>
                     </div>
                     
                     <div style="display: flex; gap: 10px;">
-                        <a href="/admin/podcast/{{ pod.id }}/edit" class="btn" style="background: transparent; color: #44aaff; border: 1px solid #44aaff; padding: 8px 15px;">✏️ Editar</a>
+                        <a href="/admin/podcast/{{ pod.id }}/edit" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <form action="/admin/podcast/{{ pod.id }}/delete" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro? Esto borrará el show y TODOS sus audios del servidor.');">
-                            <button type="submit" class="btn" style="background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; cursor: pointer;">🗑️ Borrar Show</button>
+                            <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px 16px; font-size: 0.85rem; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Borrar Show</button>
                         </form>
                     </div>
                 </div>
 
                 <details>
-                    <summary style="cursor: pointer; color: #aaa; font-weight: bold; padding: 10px 0; outline: none; user-select: none;">
-                        ▶ Mostrar {{ pod.episodes|length }} episodios y opciones...
+                    <summary>
+                        <i class="fa-solid fa-chevron-right summary-arrow" style="font-size: 0.85rem; transition: var(--transition);"></i>
+                        <span>Gestionar {{ pod.episodes|length }} episodios y subidas</span>
                     </summary>
                     
-                    <div style="padding-top: 15px; border-top: 1px dashed #333; margin-top: 5px;">
-                        <a href="/admin/podcast/{{ pod.id }}/episode/new" class="btn" style="margin-bottom: 20px; display: inline-block;">+ Subir Nuevo Episodio</a>
+                    <div style="padding-top: 20px; margin-top: 5px;">
+                        <a href="/admin/podcast/{{ pod.id }}/episode/new" class="btn" style="margin-bottom: 25px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; padding: 10px 18px;"><i class="fa-solid fa-cloud-arrow-up"></i> Subir Nuevo Episodio</a>
                         
                         {% if pod.episodes %}
-                            <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                                <thead>
-                                    <tr style="border-bottom: 2px solid var(--gray);">
-                                        <th style="padding: 10px;">Título</th>
-                                        <th style="padding: 10px;">Fecha</th>
-                                        <th style="padding: 10px;">Duración</th>
-                                        <th style="padding: 10px;">Escuchas</th>
-                                        <th style="padding: 10px;">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for ep in pod.episodes %}
-                                        <tr style="border-bottom: 1px solid var(--gray);">
-                                            <td style="padding: 10px;">{{ ep.title }}</td>
-                                            <td style="padding: 10px; color: #aaa;">{{ ep.pub_date.strftime('%Y-%m-%d') }}</td>
-                                            <td style="padding: 10px; color: #aaa;">{{ ep.duration }}</td>
-                                            <td style="padding: 10px;">
-                                                <span style="background: #222; padding: 3px 8px; border-radius: 12px; font-size: 0.85rem;">🎧 {{ ep.listens }}</span>
-                                            </td>
-                                            <td style="padding: 10px; display: flex; gap: 10px;">
-                                                <a href="/admin/episode/{{ ep.id }}/edit" style="text-decoration: none; font-size: 1.2rem;" title="Editar Episodio">✏️</a>
-                                                <form action="/admin/episode/{{ ep.id }}/delete" method="POST" style="display: inline; margin: 0; padding: 0;" onsubmit="return confirm('¿Borrar este episodio?');">
-                                                    <button type="submit" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 0; color: inherit;" title="Borrar Episodio">🗑️</button>
-                                                </form>
-                                            </td>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 500px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border-color);">
+                                            <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Título</th>
+                                            <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Fecha</th>
+                                            <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Duración</th>
+                                            <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Escuchas</th>
+                                            <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; text-align: right;">Acciones</th>
                                         </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {% for ep in pod.episodes %}
+                                            <tr class="episode-row" style="border-bottom: 1px solid var(--border-color);">
+                                                <td style="padding: 12px; font-weight: 500;">{{ ep.title }}</td>
+                                                <td style="padding: 12px; color: var(--text-secondary); font-size: 0.9rem;"><i class="fa-regular fa-calendar" style="margin-right: 5px; color: var(--text-muted);"></i> {{ ep.pub_date.strftime('%Y-%m-%d') }}</td>
+                                                <td style="padding: 12px; color: var(--text-secondary); font-size: 0.9rem;"><i class="fa-regular fa-clock" style="margin-right: 5px; color: var(--text-muted);"></i> {{ ep.duration }}</td>
+                                                <td style="padding: 12px;">
+                                                    <span style="background: rgba(99, 102, 241, 0.1); color: #a5b4fc; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(99, 102, 241, 0.2);"><i class="fa-solid fa-headphones"></i> {{ ep.listens }}</span>
+                                                </td>
+                                                <td style="padding: 12px; text-align: right;">
+                                                    <div style="display: inline-flex; gap: 8px;">
+                                                        <a href="/admin/episode/{{ ep.id }}/edit" class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; box-shadow: none;" title="Editar Episodio"><i class="fa-solid fa-pen"></i></a>
+                                                        <form action="/admin/episode/{{ ep.id }}/delete" method="POST" style="display: inline; margin: 0; padding: 0;" onsubmit="return confirm('¿Borrar este episodio?');">
+                                                            <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 10px; font-size: 0.8rem; cursor: pointer; box-shadow: none;" title="Borrar Episodio"><i class="fa-solid fa-trash"></i></button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         {% else %}
-                            <p style="color: #aaa; font-style: italic;">Aún no hay episodios en este programa.</p>
+                            <p style="color: var(--text-muted); font-style: italic; margin: 15px 0 0 0; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-exclamation"></i> Aún no hay episodios en este programa.</p>
                         {% endif %}
                     </div>
                 </details>
             </div>
     {% else %}
-    <div class="card" style="text-align: center; padding: 50px 20px;">
-        <h3 style="color: #888;">Tu estudio de grabación está vacío</h3>
-        <a href="/admin/podcast/new" class="btn" style="display: inline-block; margin-top: 10px;">Crear mi primer Podcast</a>
+    <div class="card" style="text-align: center; padding: 60px 20px; border-color: rgba(99, 102, 241, 0.15);">
+        <i class="fa-solid fa-microphone-lines" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+        <h3 style="color: var(--text-secondary); margin-top: 0;">Tu estudio de grabación está vacío</h3>
+        <p style="margin-bottom: 25px;">Comienza creando un show de podcast para subir episodios.</p>
+        <a href="/admin/podcast/new" class="btn" style="display: inline-block;"><i class="fa-solid fa-plus"></i> Crear mi primer Podcast</a>
     </div>
     {% endfor %}
+
+    <!-- Estilos específicos para la UI de Administración -->
+    <style>
+        details {
+            border-top: 1px solid var(--border-color);
+            margin-top: 15px;
+        }
+        details[open] summary {
+            color: var(--accent-primary);
+        }
+        details[open] .summary-arrow {
+            transform: rotate(90deg);
+            color: var(--accent-primary);
+        }
+        summary {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 18px 0 8px 0;
+            outline: none;
+            user-select: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        summary:hover {
+            color: var(--text-primary);
+        }
+        /* Eliminar la flecha por defecto de detalles */
+        summary::-webkit-details-marker {
+            display: none;
+        }
+        summary {
+            list-style: none;
+        }
+        
+        .episode-row {
+            transition: var(--transition);
+        }
+        .episode-row:hover {
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .podcast-admin-card {
+            transition: var(--transition) !important;
+        }
+        .podcast-admin-card:hover {
+            border-color: rgba(99, 102, 241, 0.2) !important;
+        }
+    </style>
 {% endblock %}

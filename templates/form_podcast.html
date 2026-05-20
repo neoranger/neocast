@@ -2,40 +2,79 @@
 {% block title %}{{ 'Editar' if podcast else 'Nuevo' }} Podcast - NeoCast{% endblock %}
 
 {% block content %}
-    <a href="/admin" style="color: #888; text-decoration: none;">← Volver al Panel</a>
+    <a href="/admin" class="back-link" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 500; margin-bottom: 25px;">
+        <i class="fa-solid fa-chevron-left"></i> Volver al Panel
+    </a>
     
-    <div class="card" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
-        <h2 style="margin-top: 0; border-bottom: 1px solid var(--gray); padding-bottom: 15px;">
-            {{ '✏️ Editar Programa' if podcast else '🎙️ Crear Nuevo Programa' }}
+    <div class="card" style="margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; padding: 35px; border-color: rgba(16, 185, 129, 0.15);">
+        <h2 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+            {% if podcast %}
+                <i class="fa-solid fa-pen-to-square" style="color: var(--accent-primary);"></i> Editar Programa
+            {% else %}
+                <i class="fa-solid fa-microphone-lines" style="color: var(--accent-primary);"></i> Crear Nuevo Programa
+            {% endif %}
         </h2>
         
         <form method="POST" enctype="multipart/form-data">
-            <label>Título del Programa</label>
-            <input type="text" name="title" value="{{ podcast.title if podcast else '' }}" required autofocus>
+            <label><i class="fa-solid fa-heading" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Título del Programa</label>
+            <input type="text" name="title" value="{{ podcast.title if podcast else '' }}" required autofocus placeholder="Ej: Café Tecnológico">
             
             {% if podcast %}
-                <label>URL Amigable (Slug) <small style="color: #888; font-weight: normal;">(Ej: mi-podcast-genial)</small></label>
+                <label><i class="fa-solid fa-link" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> URL Amigable (Slug) <small style="color: var(--text-muted); font-weight: normal;">(Ej: mi-podcast-genial)</small></label>
                 <input type="text" name="slug" value="{{ podcast.slug }}" required>
             {% endif %}
             
-            <label>Autor / Host</label>
-            <input type="text" name="author" value="{{ podcast.author if podcast else '' }}" required>
+            <label><i class="fa-solid fa-user" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Autor / Host</label>
+            <input type="text" name="author" value="{{ podcast.author if podcast else '' }}" required placeholder="Ej: Juan Pérez">
             
-            <label>Categoría</label>
-            <input type="text" name="category" value="{{ podcast.category if podcast else '' }}">
+            <label><i class="fa-solid fa-tags" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Categoría</label>
+            <input type="text" name="category" value="{{ podcast.category if podcast else '' }}" placeholder="Ej: Tecnología, Comedia, Educación">
             
-            <label>Imagen de Portada {% if podcast %} (Deja vacío para mantener la actual) {% endif %}</label>
-            <div style="background: #0a0a0a; padding: 20px; border-radius: 6px; border: 1px dashed #555; text-align: center;">
+            <label><i class="fa-solid fa-image" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Imagen de Portada {% if podcast %} (Deja vacío para mantener la actual) {% endif %}</label>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px;">
                 {% if podcast and podcast.cover_image %}
-                    <img src="/media/{{ podcast.cover_image }}" style="width: 80px; height: 80px; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); width: fit-content;">
+                        <img src="/media/{{ podcast.cover_image }}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Portada actual activa</span>
+                    </div>
                 {% endif %}
-                <input type="file" name="cover_image" accept=".jpg,.jpeg,.png" style="border: none; background: transparent; padding: 0;">
+                
+                <div class="file-upload-wrapper" style="background: rgba(10, 15, 30, 0.6); padding: 30px 20px; border-radius: 12px; border: 2px dashed rgba(16, 185, 129, 0.25); text-align: center; cursor: pointer; position: relative; transition: var(--transition);">
+                    <input type="file" name="cover_image" id="cover_image" accept=".jpg,.jpeg,.png" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.2rem; color: var(--accent-primary); margin-bottom: 12px; display: block;"></i>
+                    <span id="file-upload-label" style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;">Arrastra tu archivo aquí o haz clic para buscar</span>
+                    <p style="margin: 6px 0 0 0; font-size: 0.75rem; color: var(--text-muted);">Soporta PNG, JPG o JPEG</p>
+                </div>
             </div>
 
-            <label>Descripción general del show</label>
-            <textarea name="description" required>{{ podcast.description if podcast else '' }}</textarea>
+            <label><i class="fa-solid fa-quote-left" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Descripción general del show</label>
+            <textarea name="description" required placeholder="Escribe aquí de qué trata el programa de podcast...">{{ podcast.description if podcast else '' }}</textarea>
             
-            <button type="submit">💾 Guardar Cambios</button>
+            <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('cover_image').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : "Arrastra tu archivo aquí o haz clic para buscar";
+            const label = document.getElementById('file-upload-label');
+            label.innerText = fileName;
+            label.style.color = "var(--success)";
+            e.currentTarget.parentElement.style.borderColor = "var(--success)";
+        });
+    </script>
+
+    <style>
+        .back-link:hover {
+            color: var(--accent-primary);
+            transform: translateX(-4px);
+        }
+        .back-link {
+            transition: var(--transition);
+        }
+        .file-upload-wrapper:hover {
+            border-color: var(--accent-primary) !important;
+            background: rgba(16, 185, 129, 0.05) !important;
+        }
+    </style>
 {% endblock %}

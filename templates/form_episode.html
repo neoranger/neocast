@@ -2,32 +2,74 @@
 {% block title %}{{ 'Editar' if episode else 'Subir' }} Episodio - NeoCast{% endblock %}
 
 {% block content %}
-    <a href="/admin" style="color: #888; text-decoration: none;">← Volver al Panel</a>
+    <a href="/admin" class="back-link" style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 500; margin-bottom: 25px;">
+        <i class="fa-solid fa-chevron-left"></i> Volver al Panel
+    </a>
 
-    <div class="card" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
-        <h2 style="margin-top: 0; border-bottom: 1px solid var(--gray); padding-bottom: 15px;">
-            {{ '✏️ Editar Episodio de:' if episode else '🚀 Subir Episodio a:' }} <span style="color: var(--accent);">{{ podcast.title }}</span>
+    <div class="card" style="margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; padding: 35px; border-color: rgba(16, 185, 129, 0.15);">
+        <h2 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            {% if episode %}
+                <i class="fa-solid fa-circle-info" style="color: var(--accent-primary);"></i> Editar Episodio de:
+            {% else %}
+                <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-primary);"></i> Subir Episodio a:
+            {% endif %}
+            <span style="color: #a7f3d0; font-weight: 700;">{{ podcast.title }}</span>
         </h2>
         
         <form method="POST" enctype="multipart/form-data">
-            <label>Título del Episodio</label>
-            <input type="text" name="title" value="{{ episode.title if episode else '' }}" required autofocus>
+            <label><i class="fa-solid fa-heading" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Título del Episodio</label>
+            <input type="text" name="title" value="{{ episode.title if episode else '' }}" required autofocus placeholder="Ej: Episodio 1: Introducción a la IA">
             
             {% if episode %}
-                <label>URL Amigable (Slug) <small style="color: #888; font-weight: normal;">(Ej: episodio-1-entrevista)</small></label>
+                <label><i class="fa-solid fa-link" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> URL Amigable (Slug) <small style="color: var(--text-muted); font-weight: normal;">(Ej: episodio-1-entrevista)</small></label>
                 <input type="text" name="slug" value="{{ episode.slug }}" required>
             {% endif %}
             
-            <label>Notas del Episodio (Markdown soportado)</label>
-            <textarea name="description">{{ episode.description if episode else '' }}</textarea>
+            <label><i class="fa-solid fa-quote-left" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Notas del Episodio <small style="color: var(--text-muted); font-weight: normal;">(Soporta Markdown)</small></label>
+            <textarea name="description" placeholder="Escribe aquí las notas del show, enlaces mencionados, etc..." style="min-height: 180px;">{{ episode.description if episode else '' }}</textarea>
             
-            <label>Archivo de Audio (.mp3) {% if episode %} (Deja vacío para mantener el audio actual) {% endif %}</label>
-            <div style="background: #0a0a0a; padding: 20px; border-radius: 6px; border: 1px dashed #555; text-align: center;">
-                <input type="file" name="audio_file" accept=".mp3" style="border: none; background: transparent; padding: 0;" {% if not episode %}required{% endif %}>
-                <p style="color: #888; font-size: 0.8rem; margin: 10px 0 0 0;">FFmpeg procesará la duración y el peso automáticamente.</p>
+            <label><i class="fa-solid fa-file-audio" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> Archivo de Audio (.mp3) {% if episode %} (Deja vacío para mantener el actual) {% endif %}</label>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                {% if episode and episode.audio_file %}
+                    <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); width: fit-content;">
+                        <i class="fa-solid fa-circle-play" style="color: var(--success); font-size: 1.2rem;"></i>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Audio actual: {{ episode.audio_file[:30] }}...</span>
+                    </div>
+                {% endif %}
+                
+                <div class="file-upload-wrapper" style="background: rgba(10, 15, 30, 0.6); padding: 30px 20px; border-radius: 12px; border: 2px dashed rgba(16, 185, 129, 0.25); text-align: center; cursor: pointer; position: relative; transition: var(--transition);">
+                    <input type="file" name="audio_file" id="audio_file" accept=".mp3" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" {% if not episode %}required{% endif %}>
+                    <i class="fa-solid fa-music" style="font-size: 2.2rem; color: var(--accent-primary); margin-bottom: 12px; display: block;"></i>
+                    <span id="file-upload-label" style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500;">Arrastra tu archivo MP3 aquí o haz clic para buscar</span>
+                    <p style="margin: 6px 0 0 0; font-size: 0.75rem; color: var(--text-muted);">FFmpeg procesará la duración y metadatos automáticamente.</p>
+                </div>
             </div>
             
-            <button type="submit">💾 Guardar Episodio</button>
+            <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Guardar Episodio</button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('audio_file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : "Arrastra tu archivo MP3 aquí o haz clic para buscar";
+            const label = document.getElementById('file-upload-label');
+            label.innerText = fileName;
+            label.style.color = "var(--success)";
+            e.currentTarget.parentElement.style.borderColor = "var(--success)";
+        });
+    </script>
+
+    <style>
+        .back-link:hover {
+            color: var(--accent-primary);
+            transform: translateX(-4px);
+        }
+        .back-link {
+            transition: var(--transition);
+        }
+        .file-upload-wrapper:hover {
+            border-color: var(--accent-primary) !important;
+            background: rgba(16, 185, 129, 0.05) !important;
+        }
+    </style>
 {% endblock %}
