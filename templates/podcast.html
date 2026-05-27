@@ -16,11 +16,11 @@
     <div class="card podcast-header-card" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap; padding: 35px; position: relative; overflow: hidden; border-color: rgba(16, 185, 129, 0.15);">
         <!-- Fondo difuso sutil con la portada -->
         {% if podcast.cover_image %}
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('/media/{{ podcast.cover_image }}') no-repeat center center; background-size: cover; filter: blur(50px) opacity(0.08); z-index: 0; pointer-events: none;"></div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}/media/{{ podcast.cover_image }}{% endif %}') no-repeat center center; background-size: cover; filter: blur(50px) opacity(0.08); z-index: 0; pointer-events: none;"></div>
         {% endif %}
 
         {% if podcast.cover_image %}
-        <img src="/media/{{ podcast.cover_image }}" alt="{{ podcast.title }}" style="width: 160px; height: 160px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); object-fit: cover; z-index: 1; border: 1px solid rgba(255,255,255,0.05);">
+        <img src="{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}/media/{{ podcast.cover_image }}{% endif %}" alt="{{ podcast.title }}" style="width: 160px; height: 160px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); object-fit: cover; z-index: 1; border: 1px solid rgba(255,255,255,0.05);">
         {% else %}
         <div style="width: 160px; height: 160px; border-radius: 16px; background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.6); z-index: 1; border: 1px solid rgba(255,255,255,0.05);">
             <i class="fa-solid fa-microphone" style="font-size: 4rem; margin-bottom: 10px;"></i>
@@ -80,7 +80,7 @@
                 <a href="/podcast/{{ podcast.slug }}/{{ ep.slug }}" class="btn btn-secondary" style="border-radius: 20px; padding: 8px 18px; font-size: 0.85rem;">
                     <i class="fa-solid fa-circle-info"></i> Notas
                 </a>
-                <audio controls preload="metadata" src="/media/{{ ep.audio_file }}?v={{ ep.id }}" style="flex: 1; height: 36px; border-radius: 20px; outline: none;"></audio>
+                <audio controls preload="metadata" src="{% if ep.audio_file.startswith('http://') or ep.audio_file.startswith('https://') %}{{ ep.audio_file }}{% else %}/media/{{ ep.audio_file }}?v={{ ep.id }}{% endif %}" style="flex: 1; height: 36px; border-radius: 20px; outline: none;"></audio>
             </div>
         </div>
         {% else %}

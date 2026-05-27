@@ -232,10 +232,14 @@ def new_episode(podcast_id):
 def admin_import():
     if request.method == 'POST':
         rss_url = request.form['rss_url']
+        mirror = 'mirror' in request.form
         
         # Disparamos el script import_rss.py en segundo plano para no congelar la web
         # sys.executable es la ruta al Python actual dentro de Docker
-        subprocess.Popen([sys.executable, 'import_rss.py', rss_url])
+        args = [sys.executable, 'import_rss.py', rss_url]
+        if mirror:
+            args.append('--mirror')
+        subprocess.Popen(args)
         
         # Redirigimos al usuario de inmediato al panel
         return redirect(url_for('admin_dashboard'))

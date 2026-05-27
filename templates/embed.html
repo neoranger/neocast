@@ -102,7 +102,7 @@
 <body>
     <div class="player-card">
         {% if podcast.cover_image %}
-        <img src="/media/{{ podcast.cover_image }}" class="cover" alt="Portada">
+        <img src="{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}/media/{{ podcast.cover_image }}{% endif %}" class="cover" alt="Portada">
         {% else %}
         <div class="cover-placeholder">
             <i class="fa-solid fa-microphone"></i>
@@ -114,7 +114,7 @@
                 <h4 class="title" title="{{ episode.title }}">{{ episode.title }}</h4>
             </a>
             <p class="podcast-name">{{ podcast.title }}</p>
-            <audio id="embed-player" controls preload="metadata" src="/media/{{ episode.audio_file }}"></audio>
+            <audio id="embed-player" controls preload="metadata" src="{% if episode.audio_file.startswith('http://') or episode.audio_file.startswith('https://') %}{{ episode.audio_file }}{% else %}/media/{{ episode.audio_file }}{% endif %}"></audio>
         </div>
     </div>
 

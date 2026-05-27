@@ -17,7 +17,10 @@ def download_file(url, prefix=""):
     
     try:
         print(f"    ⬇️ Descargando: {url.split('/')[-1][:30]}...")
-        response = requests.get(url, stream=True, timeout=30)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, stream=True, timeout=30)
         response.raise_for_status()
         
         ext = url.split('.')[-1][:4]
@@ -38,12 +41,25 @@ def download_file(url, prefix=""):
         print(f"    ❌ Error descargando {url}: {e}")
         return None
 
-def import_podcast(feed_url):
-    print(f"\n📡 Analizando feed RSS: {feed_url}")
-    feed = feedparser.parse(feed_url)
+def import_podcast(feed_url, mirror=False):
+    print(f"\n📡 Analizando feed RSS: {feed_url} (Modo espejo: {'Sí' if mirror else 'No'})")
     
-    if feed.bozo:
-        print("❌ Error: No se pudo leer el RSS. Verifica la URL.")
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        response = requests.get(feed_url, headers=headers, timeout=20)
+        response.raise_for_status()
+        feed = feedparser.parse(response.content)
+    except Exception as e:
+        print(f"❌ Error descargando el feed RSS: {e}")
+        return
+    
+    # Solo abortar si no hay entradas ni información del feed (bozo puede ser 1 por advertencias menores de XML)
+    if not feed.entries and not feed.feed:
+        print("❌ Error: No se pudo leer el RSS o el feed está vacío.")
+        if feed.bozo:
+            print(f"    Detalle del parser: {feed.bozo_exception}")
         return
 
     title = feed.feed.get('title', 'Podcast Importado')
@@ -62,7 +78,11 @@ def import_podcast(feed_url):
     elif 'itunes_image' in feed.feed:
         cover_url = feed.feed.itunes_image.get('href')
         
-    cover_filename = download_file(cover_url, "cover")
+    if mirror and cover_url:
+        cover_filename = cover_url
+        print(f"    🔗 Usando portada externa: {cover_url}")
+    else:
+        cover_filename = download_file(cover_url, "cover")
 
     with app.app_context():
         new_pod = Podcast(
@@ -78,7 +98,10 @@ def import_podcast(feed_url):
         podcast_id = new_pod.id
 
         print(f"✅ Programa creado con ID: {podcast_id}")
-        print(f"📦 Encontrados {len(feed.entries)} episodios. Iniciando descarga...\n")
+        if mirror:
+            print(f"📦 Encontrados {len(feed.entries)} episodios. Guardando enlaces espejo...\n")
+        else:
+            print(f"📦 Encontrados {len(feed.entries)} episodios. Iniciando descarga...\n")
 
         for entry in reversed(feed.entries):
             ep_title = entry.get('title', 'Episodio sin título')
@@ -116,9 +139,13 @@ def import_podcast(feed_url):
                     break
             
             if audio_url:
-                audio_filename = download_file(audio_url, "ep")
+                if mirror:
+                    audio_filename = audio_url
+                    print(f"    🔗 Guardando enlace de audio espejo: {audio_url}")
+                else:
+                    audio_filename = download_file(audio_url, "ep")
                 
-                if not byte_size and audio_filename:
+                if not byte_size and audio_filename and not mirror:
                     filepath = os.path.join(MEDIA_DIR, audio_filename)
                     if os.path.exists(filepath):
                         byte_size = os.path.getsize(filepath)
@@ -133,7 +160,7 @@ def import_podcast(feed_url):
                             description=ep_desc,
                             audio_file=audio_filename,
                             duration=str(duration),
-                            byte_size=int(byte_size),
+                            byte_size=int(byte_size) if byte_size else 0,
                             pub_date=pub_date,
                             listens=0
                         )
@@ -150,8 +177,9 @@ def import_podcast(feed_url):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Uso: python import_rss.py <URL_DEL_RSS>")
+        print("Uso: python import_rss.py <URL_DEL_RSS> [--mirror]")
         sys.exit(1)
     
     rss_url = sys.argv[1]
-    import_podcast(rss_url)
+    is_mirror = "--mirror" in sys.argv
+    import_podcast(rss_url, mirror=is_mirror)

@@ -25,7 +25,14 @@
             <label><i class="fa-solid fa-link" style="color: var(--accent-primary); margin-right: 6px; font-size: 0.85rem;"></i> URL del Feed RSS</label>
             <input type="url" name="rss_url" placeholder="https://tudominio.com/feed.xml" required autofocus>
             
-            <button type="submit" style="background: var(--accent-gradient); color: white; margin-top: 15px;"><i class="fa-solid fa-circle-play"></i> Iniciar Importación</button>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; background: rgba(255,255,255,0.02); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <input type="checkbox" name="mirror" id="mirror" style="width: auto; margin: 0; cursor: pointer; transform: scale(1.15);">
+                <label for="mirror" style="margin: 0; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">
+                    <strong>Modo Espejo:</strong> No descargar audios ni portadas (usar enlaces del feed original)
+                </label>
+            </div>
+            
+            <button type="submit" style="background: var(--accent-gradient); color: white; margin-top: 20px;"><i class="fa-solid fa-circle-play"></i> Iniciar Importación</button>
         </form>
     </div>
 

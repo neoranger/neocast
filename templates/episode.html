@@ -4,7 +4,7 @@
 {% block meta_description %}{{ episode.description[:150] | striptags }}{% endblock %}
 {% block og_title %}{{ episode.title }} | {{ podcast.title }}{% endblock %}
 {% block og_description %}{{ episode.description[:150] | striptags }}{% endblock %}
-{% block og_image %}{% if podcast.cover_image %}{{ request.url_root }}media/{{ podcast.cover_image }}{% endif %}{% endblock %}
+{% block og_image %}{% if podcast.cover_image %}{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}{{ request.url_root }}media/{{ podcast.cover_image }}{% endif %}{% endif %}{% endblock %}
 
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -20,7 +20,7 @@
 
         <!-- Cover Art -->
         {% if podcast.cover_image %}
-        <img src="/media/{{ podcast.cover_image }}" alt="Portada" style="width: 180px; height: 180px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); object-fit: cover; border: 1px solid rgba(255,255,255,0.05); z-index: 1;">
+        <img src="{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}/media/{{ podcast.cover_image }}{% endif %}" alt="Portada" style="width: 180px; height: 180px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); object-fit: cover; border: 1px solid rgba(255,255,255,0.05); z-index: 1;">
         {% else %}
         <div style="width: 180px; height: 180px; border-radius: 16px; background: linear-gradient(135deg, #1e293b, #0f172a); color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 12px 30px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); z-index: 1;">
             <i class="fa-solid fa-microphone" style="font-size: 4rem; margin-bottom: 10px;"></i>
@@ -34,7 +34,7 @@
         </p>
 
         <!-- Elemento nativo oculto -->
-        <audio id="podcast-player" preload="metadata" src="/media/{{ episode.audio_file }}?v={{ episode.id }}" style="display: none;"></audio>
+        <audio id="podcast-player" preload="metadata" src="{% if episode.audio_file.startswith('http://') or episode.audio_file.startswith('https://') %}{{ episode.audio_file }}{% else %}/media/{{ episode.audio_file }}?v={{ episode.id }}{% endif %}" style="display: none;"></audio>
 
         <!-- Barra de Progreso Seekbar -->
         <div style="width: 100%; display: flex; flex-direction: column; margin-bottom: 25px; z-index: 1;">

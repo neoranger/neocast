@@ -14,7 +14,7 @@
         </itunes:owner>
         
         {% if podcast.cover_image %}
-        <itunes:image href="{{ request.url_root }}static/media/{{ podcast.cover_image }}"/>
+        <itunes:image href="{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}{{ request.url_root }}static/media/{{ podcast.cover_image }}{% endif %}"/>
         {% endif %}
         
         {% if podcast.category %}
@@ -35,7 +35,7 @@
             <pubDate>{{ ep.pub_date | rfc2822 }}</pubDate>
             
             <enclosure 
-                url="{{ request.url_root }}static/media/{{ ep.audio_file }}" 
+                url="{% if ep.audio_file.startswith('http://') or ep.audio_file.startswith('https://') %}{{ ep.audio_file }}{% else %}{{ request.url_root }}static/media/{{ ep.audio_file }}{% endif %}" 
                 length="{{ ep.byte_size }}" 
                 type="audio/mpeg" 
             />

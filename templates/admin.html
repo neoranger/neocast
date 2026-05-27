@@ -16,7 +16,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 18px; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;">
                     <div style="display: flex; align-items: center; gap: 15px;">
                         {% if pod.cover_image %}
-                            <img src="/media/{{ pod.cover_image }}" style="width: 55px; height: 55px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.05);">
+                            <img src="{% if pod.cover_image.startswith('http://') or pod.cover_image.startswith('https://') %}{{ pod.cover_image }}{% else %}/media/{{ pod.cover_image }}{% endif %}" style="width: 55px; height: 55px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.05);">
                         {% else %}
                             <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-microphone"></i></div>
                         {% endif %}
