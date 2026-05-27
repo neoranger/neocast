@@ -63,6 +63,7 @@ class Podcast(db.Model):
     author = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(100))
     cover_image = db.Column(db.String(255))
+    es_dinamico = db.Column(db.Boolean, default=False, nullable=False)
     episodes = db.relationship('Episode', backref='podcast', lazy=True, cascade="all, delete-orphan", order_by="desc(Episode.pub_date)")
 
 class Episode(db.Model):
@@ -227,25 +228,51 @@ def new_episode(podcast_id):
     return render_template('form_episode.html', podcast=podcast)
     
 # --- RUTA PARA IMPORTAR RSS DESDE LA WEB ---
-@app.route('/admin/import', methods=['GET', 'POST'])
-@login_required
-def admin_import():
-    if request.method == 'POST':
-        rss_url = request.form['rss_url']
-        mirror = 'mirror' in request.form
+#@app.route('/admin/import', methods=['GET', 'POST'])
+#@login_required
+#def admin_import():
+#    if request.method == 'POST':
+#        rss_url = request.form['rss_url']
+#        mirror = 'mirror' in request.form
         
         # Disparamos el script import_rss.py en segundo plano para no congelar la web
         # sys.executable es la ruta al Python actual dentro de Docker
-        args = [sys.executable, 'import_rss.py', rss_url]
-        if mirror:
-            args.append('--mirror')
-        subprocess.Popen(args)
+#        args = [sys.executable, 'import_rss.py', rss_url]
+#        if mirror:
+#            args.append('--mirror')
+#        subprocess.Popen(args)
         
         # Redirigimos al usuario de inmediato al panel
-        return redirect(url_for('admin_dashboard'))
+#        return redirect(url_for('admin_dashboard'))
+        
+#    return render_template('form_import.html')
+
+@app.route('/admin/import', methods=['GET', 'POST'])
+def import_podcast_route():
+    if not session.get('logged_in'):
+        return redirect('/login')
+        
+    if request.method == 'POST':
+        rss_url = request.form.get('rss_url')
+        # Si el checkbox no está marcado, request.form.get('mirror') devuelve None
+        mirror_mode = request.form.get('mirror') is not None
+        
+        # Ejecutar el script/función de importación pasando el parámetro mirror
+        # Opción A: Si lo importas como función dentro de app.py
+        # threading.Thread(target=import_podcast, args=(rss_url, mirror_mode)).start()
+        
+        # Opción B: Si llamas al script del sistema con subprocess
+        import subprocess
+        cmd = [sys.executable, "import_rss.py", rss_url]
+        if mirror_mode:
+            cmd.append("--mirror")
+        subprocess.Popen(cmd)
+        
+        flash("La importación ha comenzado en segundo plano.")
+        return redirect('/admin')
         
     return render_template('form_import.html')
-    
+
 # --- RUTAS DE AUTENTICACIÓN ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
