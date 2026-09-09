@@ -3,10 +3,10 @@
 {% block content %}
     <section class="hero-section" style="text-align: center; padding: 60px 20px 40px 20px; position: relative; overflow: hidden; border-radius: 20px; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, transparent 70%); margin-bottom: 40px;">
         <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, #fff 30%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: var(--font-head); letter-spacing: -1px;">
-            Tu Universo de Audio Digital
+            El Universo de Audio de NeoCast
         </h1>
         <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 30px auto; color: var(--text-secondary);">
-            Descubre y gestiona tus programas de podcast favoritos con NeoCast. Calidad de audio impecable y autoalojada.
+            Descubre todos los programas y episodios de NeoCast. Audio original, calidad impecable y autoalojado.
         </p>
         <div style="display: flex; justify-content: center; gap: 15px;">
             <a href="#explorar" class="btn"><i class="fa-solid fa-compass"></i> Explorar Shows</a>
@@ -17,7 +17,7 @@
     </section>
 
     <div id="explorar" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0; font-size: 1.8rem; font-family: var(--font-head);"><i class="fa-solid fa-circle-play" style="color: var(--accent-primary); margin-right: 8px;"></i> Programas Disponibles</h2>
+        <h2 style="margin: 0; font-size: 1.8rem; font-family: var(--font-head);"><i class="fa-solid fa-circle-play" style="color: var(--accent-primary); margin-right: 8px;"></i> Nuestros Programas</h2>
         <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; background: rgba(255,255,255,0.04); padding: 5px 12px; border-radius: 12px; border: 1px solid var(--border-color);">
             {{ podcasts|length }} Podcasts
         </span>
@@ -65,7 +65,7 @@
         <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: rgba(255,255,255,0.01);">
             <i class="fa-solid fa-podcast" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 15px;"></i>
             <h3 style="margin-top: 0; color: var(--text-secondary);">No hay podcasts disponibles todavía</h3>
-            <p style="margin-bottom: 25px;">Sé el primero en crear un programa de podcast en esta plataforma.</p>
+            <p style="margin-bottom: 25px;">Todavía no hay programas publicados en NeoCast.</p>
             {% if session.get('logged_in') %}
                 <a href="/admin/podcast/new" class="btn"><i class="fa-solid fa-plus"></i> Crear Programa</a>
             {% else %}

@@ -11,16 +11,17 @@ from werkzeug.utils import secure_filename
 # Importamos las herramientas
 from app import app, db, Podcast, Episode, slugify, MEDIA_DIR
 
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
+
 def download_file(url, prefix=""):
     """Descarga un archivo y lo guarda con un nombre 100% único."""
     if not url: return None
     
     try:
         print(f"    ⬇️ Descargando: {url.split('/')[-1][:30]}...")
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers, stream=True, timeout=30)
+        response = requests.get(url, headers=HEADERS, stream=True, timeout=30)
         response.raise_for_status()
         
         ext = url.split('.')[-1][:4]
@@ -41,14 +42,27 @@ def download_file(url, prefix=""):
         print(f"    ❌ Error descargando {url}: {e}")
         return None
 
+def parse_duration(raw_duration):
+    """Traductor inteligente de duraciones (Segundos vs HH:MM:SS)."""
+    raw_duration = raw_duration or '00:00:00'
+    if isinstance(raw_duration, str) and raw_duration.isdigit():
+        total_seconds = int(raw_duration)
+        hours = total_seconds // 3600
+        mins = (total_seconds % 3600) // 60
+        secs = total_seconds % 60
+        return f"{hours:02d}:{mins:02d}:{secs:02d}"
+    elif isinstance(raw_duration, str) and ':' in raw_duration:
+        parts = raw_duration.split(':')
+        if len(parts) == 2:
+            return f"00:{int(parts[0]):02d}:{int(parts[1]):02d}"
+        return raw_duration
+    return "00:00:00"
+
 def import_podcast(feed_url, mirror=False):
     print(f"\n📡 Analizando feed RSS: {feed_url} (Modo espejo: {'Sí' if mirror else 'No'})")
     
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        response = requests.get(feed_url, headers=headers, timeout=20)
+        response = requests.get(feed_url, headers=HEADERS, timeout=20)
         response.raise_for_status()
         feed = feedparser.parse(response.content)
     except Exception as e:
@@ -91,7 +105,11 @@ def import_podcast(feed_url, mirror=False):
             description=description,
             author=author,
             category=category,
-            cover_image=cover_filename
+            cover_image=cover_filename,
+            rss_url=feed_url,
+            es_dinamico=True,
+            es_mirror=mirror,
+            last_synced_at=datetime.utcnow()
         )
         db.session.add(new_pod)
         db.session.commit()
@@ -114,21 +132,7 @@ def import_podcast(feed_url, mirror=False):
                 pub_date = datetime.fromtimestamp(mktime(entry.published_parsed))
                 
             # Traductor inteligente de duraciones (Segundos vs HH:MM:SS)
-            raw_duration = entry.get('itunes_duration', '00:00:00')
-            if isinstance(raw_duration, str) and raw_duration.isdigit():
-                total_seconds = int(raw_duration)
-                hours = total_seconds // 3600
-                mins = (total_seconds % 3600) // 60
-                secs = total_seconds % 60
-                duration = f"{hours:02d}:{mins:02d}:{secs:02d}"
-            elif isinstance(raw_duration, str) and ':' in raw_duration:
-                parts = raw_duration.split(':')
-                if len(parts) == 2:
-                    duration = f"00:{int(parts[0]):02d}:{int(parts[1]):02d}"
-                else:
-                    duration = raw_duration
-            else:
-                duration = "00:00:00"
+            duration = parse_duration(entry.get('itunes_duration', '00:00:00'))
             
             audio_url = None
             byte_size = 0

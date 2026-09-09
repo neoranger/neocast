@@ -4,6 +4,7 @@ import email.utils
 import time
 import subprocess
 import sys
+import threading
 import pyotp
 import qrcode
 import base64
@@ -64,6 +65,9 @@ class Podcast(db.Model):
     category = db.Column(db.String(100))
     cover_image = db.Column(db.String(255))
     es_dinamico = db.Column(db.Boolean, default=False, nullable=False)
+    rss_url = db.Column(db.String(500))
+    es_mirror = db.Column(db.Boolean, default=False, nullable=False)
+    last_synced_at = db.Column(db.DateTime)
     episodes = db.relationship('Episode', backref='podcast', lazy=True, cascade="all, delete-orphan", order_by="desc(Episode.pub_date)")
 
 class Episode(db.Model):
@@ -459,6 +463,31 @@ def register_play(episode_id):
     ep.listens += 1
     db.session.commit()
     return jsonify({'success': True, 'listens': ep.listens})
+
+# --- SINCRONIZACIÓN AUTOMÁTICA DE PODCASTS REMOTOS ---
+# Un único hilo general recorre todos los podcasts importados desde RSS externo
+# (es_dinamico=True con rss_url) cada SYNC_INTERVAL_MINUTES y agrega episodios nuevos.
+def _run_sync_loop():
+    interval = max(5, int(os.environ.get('SYNC_INTERVAL_MINUTES', '60'))) * 60
+    time.sleep(30)  # Primera sync a los 30s del arranque para dejar feeds frescos
+    while True:
+        try:
+            from sync_rss import sync_all
+            result = sync_all()
+            print(f"[sync] {result}")
+        except Exception as e:
+            print(f"[sync] Error en la sincronización: {e}")
+        time.sleep(interval)
+
+def _start_sync_thread():
+    # Con debug=True Flask activa el reloader de Werkzeug: el proceso padre importa
+    # la app y luego lanza un subproceso. Para no duplicar el hilo, solo arrancamos
+    # en el proceso final (WERKZEUG_RUN_MAIN='true') o cuando no hay reloader.
+    if os.environ.get('FLASK_DEBUG') == '1' and os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        return
+    threading.Thread(target=_run_sync_loop, daemon=True).start()
+
+_start_sync_thread()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

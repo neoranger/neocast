@@ -13,6 +13,7 @@ services:
     environment:
       - ADMIN_PASSWORD=password
       - PODCAST_EMAIL=mail@email.com
+      - SYNC_INTERVAL_MINUTES=60
       - FLASK_ENV=development
       - FLASK_DEBUG=1
       - TZ=your/time/zone

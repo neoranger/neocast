@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}NeoCast{% endblock %}</title>
 
-    <meta name="description" content="{% block meta_description %}Plataforma de Podcasts impulsada por NeoCast.{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Los podcasts de NeoCast. Programas y episodios originales.{% endblock %}">
     <meta property="og:title" content="{% block og_title %}NeoCast{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Descubre nuestros programas y episodios.{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Descubre los programas y episodios de NeoCast.{% endblock %}">
     <meta property="og:image" content="{% block og_image %}{% endblock %}">
     <meta property="og:url" content="{{ request.url }}">
     <meta name="twitter:card" content="summary_large_image">
@@ -311,7 +311,7 @@
     <footer>
         <div class="container">
             <p>
-                <i class="fa-solid fa-podcast"></i> NeoCast &bull; Plataforma de Podcast Profesional y Autoalojada
+                <i class="fa-solid fa-podcast"></i> NeoCast &bull; Podcasts originales y autoalojados
                 {% if not session.get('logged_in') %}
                     &bull; <a href="/login" style="color: var(--text-muted); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px; transition: var(--transition);"><i class="fa-solid fa-lock"></i> Admin</a>
                 {% endif %}
