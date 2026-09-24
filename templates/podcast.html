@@ -4,7 +4,7 @@
 {% block meta_description %}{{ podcast.description[:150] }}{% endblock %}
 {% block og_title %}{{ podcast.title }}{% endblock %}
 {% block og_description %}{{ podcast.description[:150] }}{% endblock %}
-{% block og_image %}{% if podcast.cover_image %}{{ request.url_root }}media/{{ podcast.cover_image }}{% endif %}{% endblock %}
+{% block og_image %}{% if podcast.cover_image %}{% if podcast.cover_image.startswith('http://') or podcast.cover_image.startswith('https://') %}{{ podcast.cover_image }}{% else %}{{ request.url_root }}media/{{ podcast.cover_image }}{% endif %}{% endif %}{% endblock %}
 
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
